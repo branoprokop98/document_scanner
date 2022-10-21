@@ -1,1 +1,1 @@
-# OpenCV document scanner
+# OpenCV for javascript document scanner
