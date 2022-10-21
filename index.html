@@ -1,0 +1,38 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Hello OpenCV.js</title>
+    <script
+        src="https://scaleflex.cloudimg.io/v7/plugins/filerobot-image-editor/latest/filerobot-image-editor.min.js"></script>
+    <link rel="stylesheet" href="styles/modal.css">
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+<div class="container">
+    <div class="fixed">
+        <img id="imageSrc" alt="No Image" width="100%"/>
+        <div class="caption">imageSrc <input type="file" id="fileInput" name="file"/></div>
+    </div>
+    <div class="flex-item">
+        <canvas id="warpedPerspective" width="50%"></canvas>
+        <div class="caption">warpedPerspective</div>
+        <button id="myBtn">Open Modal</button>
+    </div>
+</div>
+
+<!-- The Modal -->
+<div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="editor_container"></div>
+    </div>
+
+</div>
+
+<script src="libs/opencv.min.js"></script>
+<script src="scripts/image_editor.js"></script>
+<script src="scripts/script.js"></script>
+</body>
+</html>
