@@ -18,7 +18,30 @@ let inputElement = document.getElementById('fileInput');
         let {tl, tr, bl, br, theWidth, theHeight} = getFinalDimenstions(corner1, corner2, corner3, corner4);
         let finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
 
+
+        // let enh = new cv.Mat();
+        // let gray = new cv.Mat();
+        // let tresh = new cv.Mat();
+        // let dsize = new cv.Size(200, 200);
+        // cv.resize(dst, enh, dsize, 0, 0, cv.INTER_CUBIC);
+        // cv.cvtColor(enh, gray, cv.COLOR_RGBA2GRAY, 0);
+        // cv.threshold(gray, tresh, 300, 400, cv.THRESH_BINARY);
         cv.imshow('warpedPerspective', finalDest);
+        console.log(theWidth, theHeight, birthNumBorders.length)
+        textRecognition(theWidth, theHeight, finalDest)
+
+        blur.delete()
+        morph.delete()
+        contours.delete()
+        // finalDest.delete()
+        // let dst = new cv.Mat();
+        // let x1 = (62.75 * theWidth) / 100
+        // let y1 = (30.24 * theHeight) / 100
+        // let x2 = (20.02 * theWidth) / 100
+        // let y2 = (4.72 * theHeight) / 100
+        // let rect = new cv.Rect(x1, y1, x2, y2);
+        // dst = finalDest.roi(rect);
+        // cv.imshow('birthNumber', dst)
     };
 
     function blurImage(src) {
@@ -29,6 +52,7 @@ let inputElement = document.getElementById('fileInput');
         let ksize = new cv.Size(5, 5);
         cv.GaussianBlur(grayscale, blur, ksize, 0, 0, cv.BORDER_REPLICATE);
 
+        grayscale.delete()
         return blur
     }
 
@@ -36,6 +60,7 @@ let inputElement = document.getElementById('fileInput');
         let morph = new cv.Mat();
         let erosionM = cv.Mat.ones(20, 20, cv.CV_8U);
         cv.morphologyEx(blur, morph, cv.MORPH_CLOSE, erosionM);
+        erosionM.delete()
         return morph;
     }
 
@@ -49,6 +74,10 @@ let inputElement = document.getElementById('fileInput');
         cv.Canny(morph, canny, 25, 25, 3, false);
         cv.findContours(canny, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         cv.drawContours(contourImg, contours, -1, contoursColor, 1)
+
+        canny.delete()
+        hierarchy.delete()
+        contourImg.delete()
 
         return contours;
     }
@@ -95,6 +124,9 @@ let inputElement = document.getElementById('fileInput');
         let dsize = new cv.Size(theWidth, theHeight);
         let M = cv.getPerspectiveTransform(srcCoords, finalDestCoords)
         cv.warpPerspective(src, finalDest, M, dsize, cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+        finalDestCoords.delete()
+        srcCoords.delete()
+        M.delete()
         return finalDest;
     }
 
@@ -115,6 +147,50 @@ let inputElement = document.getElementById('fileInput');
             }
         }
         return {"biggest": biggest, "area": max_area}
+    }
+
+    function textRecognition(theWidth, theHeight, finalDest) {
+        let birthNumImage = document.getElementById("birthNumber")
+
+        const worker = Tesseract.createWorker();
+        const rectangles = [];
+
+        birthNumBorders.forEach(border => {
+            let x1 = (border.left * theWidth) / 100
+            let y1 = (border.top * theHeight) / 100
+            let x2 = (border.width * theWidth) / 100
+            let y2 = (border.height * theHeight) / 100
+            rectangles.push({left: x1, top: y1, width: x2, height: y2})
+        });
+
+        (async () => {
+            await worker.load();
+            await worker.loadLanguage('slk');
+            await worker.initialize('slk');
+            const values = [];
+            for (let i = 0; i < rectangles.length; i++) {
+                let rect = new cv.Rect(
+                    rectangles[i].left,
+                    rectangles[i].top,
+                    rectangles[i].width,
+                    rectangles[i].height);
+                let dst = new cv.Mat();
+                dst = finalDest.roi(rect);
+                cv.imshow('birthNumber', dst)
+                dst.delete()
+                const {data: {text}} = await worker.recognize(birthNumImage);
+                values.push(text);
+            }
+            console.log(values);
+            values.forEach(string => {
+                const found = string.match(/[0-9]{6}\/[0-9]{3,4}/g);
+                if (typeof found != "undefined" && found != null && found.length != null
+                    && found.length > 0) {
+                    console.log(found[0])
+                }
+            })
+            await worker.terminate();
+        })();
     }
 })();
 

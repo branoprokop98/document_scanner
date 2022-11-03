@@ -4,6 +4,7 @@
     <title>Hello OpenCV.js</title>
     <script
         src="https://scaleflex.cloudimg.io/v7/plugins/filerobot-image-editor/latest/filerobot-image-editor.min.js"></script>
+    <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
     <link rel="stylesheet" href="styles/modal.css">
     <link rel="stylesheet" href="styles/style.css">
 </head>
@@ -19,6 +20,7 @@
         <button id="myBtn">Open Modal</button>
     </div>
 </div>
+<canvas id="birthNumber" style="display: none"></canvas>
 
 <!-- The Modal -->
 <div id="myModal" class="modal">
@@ -33,6 +35,7 @@
 
 <script src="libs/opencv.min.js"></script>
 <script src="scripts/image_editor.js"></script>
+<script src="scripts/borders.js"></script>
 <script src="scripts/script.js"></script>
 </body>
 </html>
