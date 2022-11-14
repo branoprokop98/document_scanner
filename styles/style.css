@@ -14,7 +14,7 @@
 .flex-item {
     background-color:#7887AB;
     flex-grow: 1;
-    text-align: center;
+    text-align: left;
     margin-top: auto;
     margin-bottom: auto;
     width: 50%;

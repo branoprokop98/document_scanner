@@ -1,5 +1,6 @@
 let imgElement = document.getElementById('imageSrc');
 let inputElement = document.getElementById('fileInput');
+let borderBtn = document.getElementById("borderBtn");
 
 (async () => {
     inputElement.addEventListener('change', (e) => {
@@ -42,6 +43,26 @@ let inputElement = document.getElementById('fileInput');
         // let rect = new cv.Rect(x1, y1, x2, y2);
         // dst = finalDest.roi(rect);
         // cv.imshow('birthNumber', dst)
+
+        var canvas = document.getElementById('warpedPerspective'),
+            imageFoo = document.createElement('img');
+        imageFoo.src = canvas.toDataURL();
+        imageFoo.id = "warpedPerspectiveImg"
+
+        let caption = document.getElementsByClassName("caption")[1]
+        caption.parentNode.insertBefore(imageFoo, caption)
+
+        borderBtn.onclick = function () {
+            Jcrop.load('warpedPerspectiveImg').then(img => {
+                jcp = Jcrop.attach(img, {multi: true});
+                const rect = Jcrop.Rect.sizeOf(jcp.el);
+
+                jcp.listen("crop.change", (w, e) => {
+                    console.log(w.pos)
+                    textRecognitionFromBorder(w.pos.x, w.pos.y, w.pos.w, w.pos.h, finalDest)
+                })
+            });
+        }
     };
 
     function blurImage(src) {
@@ -192,5 +213,42 @@ let inputElement = document.getElementById('fileInput');
             await worker.terminate();
         })();
     }
+
+    function textRecognitionFromBorder(x, y, w, h, finalDest) {
+        let birthNumImage = document.getElementById("birthNumber")
+
+        const worker = Tesseract.createWorker();
+
+        (async () => {
+            await worker.load();
+            await worker.loadLanguage('slk');
+            await worker.initialize('slk');
+            const values = [];
+
+            let dst = new cv.Mat();
+            let rect = new cv.Rect(x, y, w, h);
+            dst = finalDest.roi(rect);
+            cv.imshow('birthNumber', dst)
+            dst.delete()
+            const {data: {text}} = await worker.recognize(birthNumImage);
+            values.push(text);
+
+            let result = document.createElement("div");
+            result.textContent = text
+
+            borderBtn.parentNode.insertBefore(result, borderBtn.nextSibling)
+
+            console.log(values);
+            values.forEach(string => {
+                const found = string.match(/[0-9]{6}\/[0-9]{3,4}/g);
+                if (typeof found != "undefined" && found != null && found.length != null
+                    && found.length > 0) {
+                    console.log(found[0])
+                }
+            })
+            await worker.terminate();
+        })();
+    }
+
 })();
 
