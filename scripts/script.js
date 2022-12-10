@@ -44,6 +44,16 @@ let borderBtn = document.getElementById("borderBtn");
         // dst = finalDest.roi(rect);
         // cv.imshow('birthNumber', dst)
 
+        try {
+            let parent = document.getElementsByClassName("flex-item")[0]
+            let warpedImg = document.getElementById("warpedPerspectiveImg")
+            let jcrop = document.getElementsByClassName("jcrop-stage")[0]
+            parent.removeChild(warpedImg)
+            parent.removeChild(jcrop)
+        } catch (e) {
+
+        }
+
         var canvas = document.getElementById('warpedPerspective'),
             imageFoo = document.createElement('img');
         imageFoo.src = canvas.toDataURL();
@@ -232,11 +242,9 @@ let borderBtn = document.getElementById("borderBtn");
             dst.delete()
             const {data: {text}} = await worker.recognize(birthNumImage);
             values.push(text);
-
-            let result = document.createElement("div");
-            result.textContent = text
-
-            borderBtn.parentNode.insertBefore(result, borderBtn.nextSibling)
+            
+            let birthNumber = document.getElementById("fbirthnumber")
+            let patientName = document.getElementById("fname")
 
             console.log(values);
             values.forEach(string => {
@@ -244,6 +252,9 @@ let borderBtn = document.getElementById("borderBtn");
                 if (typeof found != "undefined" && found != null && found.length != null
                     && found.length > 0) {
                     console.log(found[0])
+                    birthNumber.value = found[0]
+                } else {
+                    patientName.value = text
                 }
             })
             await worker.terminate();

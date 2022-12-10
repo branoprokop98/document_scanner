@@ -5,5 +5,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="filerobot-image-editor" level="application" />
+    <orderEntry type="library" name="jcrop" level="application" />
   </component>
 </module>
