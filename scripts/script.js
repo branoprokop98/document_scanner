@@ -242,7 +242,7 @@ let borderBtn = document.getElementById("borderBtn");
             dst.delete()
             const {data: {text}} = await worker.recognize(birthNumImage);
             values.push(text);
-            
+
             let birthNumber = document.getElementById("fbirthnumber")
             let patientName = document.getElementById("fname")
 
