@@ -1,6 +1,7 @@
 let imgElement = document.getElementById('imageSrc');
 let inputElement = document.getElementById('fileInput');
 let borderBtn = document.getElementById("borderBtn");
+let imageUrl
 
 (async () => {
     inputElement.addEventListener('change', (e) => {
@@ -61,6 +62,9 @@ let borderBtn = document.getElementById("borderBtn");
 
         let caption = document.getElementsByClassName("caption")[1]
         caption.parentNode.insertBefore(imageFoo, caption)
+
+        imageUrl = document.getElementById("warpedPerspectiveImg").getAttribute("src")
+        imageUrl = finalDest
 
         borderBtn.onclick = function () {
             Jcrop.load('warpedPerspectiveImg').then(img => {
@@ -260,6 +264,9 @@ let borderBtn = document.getElementById("borderBtn");
             await worker.terminate();
         })();
     }
+
+    const getBase64StringFromDataURL = (dataURL) =>
+        dataURL.replace('data:', '').replace(/^.+,/, '');
 
 })();
 
