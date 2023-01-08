@@ -1,6 +1,8 @@
 let imgElement = document.getElementById('imageSrc');
 let inputElement = document.getElementById('fileInput');
 let borderBtn = document.getElementById("borderBtn");
+let birthNumber = document.getElementById("fbirthnumber")
+let patientName = document.getElementById("fname")
 let imageUrl
 let rgbArray
 
@@ -254,9 +256,6 @@ let rgbArray
             dst.delete()
             const {data: {text}} = await worker.recognize(birthNumImage);
             values.push(text);
-
-            let birthNumber = document.getElementById("fbirthnumber")
-            let patientName = document.getElementById("fname")
 
             console.log(values);
             values.forEach(string => {

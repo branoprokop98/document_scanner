@@ -29,7 +29,9 @@ app.post("/request", (req, res) => {
     const data = req.body.image
     const rows = req.body.rows;
     const cols = req.body.cols;
-    saveImageToDicom(data, rows, cols)
+    const birthNumber = req.body.birth;
+    const name = req.body.name;
+    saveImageToDicom(data, rows, cols, birthNumber, name)
     res.json([{
         name_recieved: "OK"
     }])
@@ -108,7 +110,7 @@ const jsonDataset = `{
     }
 }`;
 
-function saveImageToDicom(data, rows, cols) {
+function saveImageToDicom(data, rows, cols, birthNumber, patientName) {
     let pixelArray = new Uint8ClampedArray(Object.values(data));
     let array = removeFourthValues(pixelArray);
 
@@ -126,6 +128,8 @@ function saveImageToDicom(data, rows, cols) {
     dataset.HighBit = 7
     dataset.Rows = rows
     dataset.Columns = cols
+    dataset.PatientName = patientName
+    dataset.PatientID = birthNumber
 
     dataset.PixelData = pixelData;
 
