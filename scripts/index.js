@@ -3,6 +3,7 @@ const path = require("path");
 const cors = require('cors');
 const fs = require('fs');
 const dcmjs = require('dcmjs')
+const canvasNode = require('canvas');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -97,7 +98,7 @@ const jsonDataset = `{
         },
         "TransferSyntaxUID": {
             "Value": [
-                "1.2.840.10008.1.2.4.70"
+                "1.2.840.10008.1.2.4.70 (JPEG Lossless, Nonhierarchical, First - Order Prediction (Processes 14[Selection Value 1]))"
             ],
             "vr": "UI"
         }
@@ -108,6 +109,12 @@ const jsonDataset = `{
 }`;
 
 function saveImageToDicom(data, rows, cols) {
+    let pixelArray = new Uint8ClampedArray(Object.values(data));
+    let array = removeFourthValues(pixelArray);
+
+// Get the raw pixel data for the image
+    const pixelData = array.buffer;
+
     const dataset = JSON.parse(jsonDataset);
 
     dataset.PhotometricInterpretation = 'RGB'
@@ -120,9 +127,8 @@ function saveImageToDicom(data, rows, cols) {
     dataset.Rows = rows
     dataset.Columns = cols
 
-    let pixelArray = new Uint8Array(Object.values(data));
+    dataset.PixelData = pixelData;
 
-    dataset.PixelData = pixelArray.buffer
 
     const dicomDict = dcmjs.data.datasetToDict(dataset);
     const buffer = Buffer.from(dicomDict.write());
@@ -133,5 +139,10 @@ function saveImageToDicom(data, rows, cols) {
         }
         // file written successfully
     });
+}
+
+
+function removeFourthValues(array) {
+    return new Uint8ClampedArray(array.filter((value, index) => (index + 1) % 4 !== 0));
 }
 

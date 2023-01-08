@@ -2,6 +2,7 @@ let imgElement = document.getElementById('imageSrc');
 let inputElement = document.getElementById('fileInput');
 let borderBtn = document.getElementById("borderBtn");
 let imageUrl
+let rgbArray
 
 (async () => {
     inputElement.addEventListener('change', (e) => {
@@ -55,10 +56,17 @@ let imageUrl
 
         }
 
-        var canvas = document.getElementById('warpedPerspective'),
-            imageFoo = document.createElement('img');
-        imageFoo.src = canvas.toDataURL();
+        let canvas = document.getElementById('warpedPerspective');
+        let imageFoo = document.createElement('img');
+        let ctx = canvas.getContext("2d")
+        const imageData = ctx.getImageData(0, 0, finalDest.cols, finalDest.rows);
+
+        rgbArray = removeFourthValues(imageData.data);
+
+        imageFoo.src = canvas.toDataURL("image/jpg");
         imageFoo.id = "warpedPerspectiveImg"
+
+        console.log(canvas.toDataURL("image/jpg"))
 
         let caption = document.getElementsByClassName("caption")[1]
         caption.parentNode.insertBefore(imageFoo, caption)
@@ -68,7 +76,7 @@ let imageUrl
 
         borderBtn.onclick = function () {
             Jcrop.load('warpedPerspectiveImg').then(img => {
-                jcp = Jcrop.attach(img, {multi: true});
+                let jcp = Jcrop.attach(img, {multi: true});
                 const rect = Jcrop.Rect.sizeOf(jcp.el);
 
                 jcp.listen("crop.change", (w, e) => {
@@ -267,6 +275,12 @@ let imageUrl
 
     const getBase64StringFromDataURL = (dataURL) =>
         dataURL.replace('data:', '').replace(/^.+,/, '');
+
+
+    function removeFourthValues(array) {
+        return new Uint8ClampedArray(array.filter((value, index) => (index + 1) % 4 !== 0));
+    }
+
 
 })();
 
