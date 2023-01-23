@@ -75,7 +75,7 @@ const jsonDataset = `{
     "StudyTime": "175158",
     "StudyDate": "20221212",
     "PatientSex": "M",
-    "ReferringPhysicianName": "MicroDicom DICOM Viewer",
+    "ReferringPhysicianName": "DICOM Web application diploma",
     "_meta": {
         "FileMetaInformationVersion": {
             "Value": [
@@ -97,12 +97,6 @@ const jsonDataset = `{
                 "1.0.0"
             ],
             "vr": "SH"
-        },
-        "TransferSyntaxUID": {
-            "Value": [
-                "1.2.840.10008.1.2.4.70 (JPEG Lossless, Nonhierarchical, First - Order Prediction (Processes 14[Selection Value 1]))"
-            ],
-            "vr": "UI"
         }
     },
     "_vrMap": {
