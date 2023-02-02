@@ -12,6 +12,7 @@ $(document).ready(function () {
                 success: function (data) {
                     console.log("OK")
                     imageUrl.delete()
+                    imageUrl = null
                     $("#warpedPerspectiveImg").attr("src","");
                     $("#imageSrc").attr("src","");
                     $("#fname").val("");

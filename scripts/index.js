@@ -74,7 +74,7 @@ const jsonDataset = `{
     "AccessionNumber": "",
     "StudyTime": "175158",
     "StudyDate": "20221212",
-    "PatientSex": "M",
+    "PatientSex": "O",
     "ReferringPhysicianName": "DICOM Web application diploma",
     "_meta": {
         "FileMetaInformationVersion": {
@@ -104,12 +104,68 @@ const jsonDataset = `{
     }
 }`;
 
+function getDate(date_ob) {
+    let day = date_ob.getDate()
+    let month = date_ob.getMonth() + 1
+    let year = date_ob.getFullYear()
+
+    if (month < 10) {
+        month = "0" + month
+    }
+
+    if (day < 10) {
+        day = "0" + day
+    }
+
+    return year + "" + month + "" + day
+}
+
+function getTime(date_ob) {
+    let hours = date_ob.getHours()
+    let minutes = date_ob.getMinutes()
+    let seconds = date_ob.getSeconds()
+
+    if (hours < 10) {
+        hours = "0" + hours
+    }
+
+    if (minutes < 10) {
+        minutes = "0" + minutes
+    }
+
+    if (seconds < 10) {
+        seconds = "0" + seconds
+    }
+
+    return hours + "" + minutes + "" + seconds
+}
+
+function extractBirthDate(birthNumber) {
+    let birth = birthNumber.split("/")[0].toString()
+    let actualYearString = new Date().getFullYear().toString();
+    let year = birth.slice(0, 2)
+    let actualYear = actualYearString.slice(-2)
+
+    if (year <= 99 && year > actualYear) {
+        return "19" + birth
+    } else {
+        return "20" + birth
+    }
+}
+
+
 function saveImageToDicom(data, rows, cols, birthNumber, patientName) {
     let pixelArray = new Uint8ClampedArray(Object.values(data));
     let array = removeFourthValues(pixelArray);
 
 // Get the raw pixel data for the image
     const pixelData = array.buffer;
+
+    let date_ob = new Date();
+    let date = getDate(date_ob);
+    let time = getTime(date_ob);
+
+    let birthDate = extractBirthDate(birthNumber)
 
     const dataset = JSON.parse(jsonDataset);
 
@@ -124,6 +180,9 @@ function saveImageToDicom(data, rows, cols, birthNumber, patientName) {
     dataset.Columns = cols
     dataset.PatientName = patientName
     dataset.PatientID = birthNumber
+    dataset.StudyTime = time
+    dataset.StudyDate = date
+    dataset.PatientBirthDate = birthDate
 
     dataset.PixelData = pixelData;
 
