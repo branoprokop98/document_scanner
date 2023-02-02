@@ -1,13 +1,20 @@
 let imgElement = document.getElementById('imageSrc');
 let inputElement = document.getElementById('fileInput');
 let borderBtn = document.getElementById("borderBtn");
+let borderCancelBtn = document.getElementById("borderCancelBtn");
+let rotateBtn = document.getElementById("rotateBtn");
 let birthNumber = document.getElementById("fbirthnumber")
 let patientName = document.getElementById("fname")
+let sizeBtn = document.getElementById("sizeBtn")
 let imageUrl
-let rgbArray
+let jcp
+let jcpWhole
+let finalDest
 
 (async () => {
     inputElement.addEventListener('change', (e) => {
+        $("#warpedPerspectiveImg").attr("src","");
+        $("#imageSrc").attr("src","");
         imgElement.src = URL.createObjectURL(e.target.files[0]);
     }, false);
 
@@ -15,13 +22,40 @@ let rgbArray
         let src = cv.imread(imgElement);
         let cornerImg = src.clone()
 
+        if(!!imageUrl) {
+            imageUrl.delete()
+            $("#warpedPerspectiveImg").attr("src","");
+        }
+
         let blur = blurImage(src);
         let morph = morphology(blur);
         let contours = findContours(morph, src);
         let biggestContour = findBiggestContour(contours)
         let {corner1, corner2, corner3, corner4} = drawCorners(biggestContour, cornerImg);
         let {tl, tr, bl, br, theWidth, theHeight} = getFinalDimenstions(corner1, corner2, corner3, corner4);
-        let finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
+        finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
+
+        sizeBtn.onclick = function () {
+            let size = $("#fsize").val()
+            if (!!size) {
+                resizeResultImage(parseInt(size))
+                cv.imshow("warpedPerspective", finalDest)
+                let canvas = document.getElementById('warpedPerspective');
+                let img = document.getElementById('warpedPerspectiveImg');
+                img.src = canvas.toDataURL("image/jpg")
+                if (!!jcp) {
+                    jcp.destroy()
+                }
+
+                if (!!jcpWhole) {
+                    jcpWhole.destroy()
+                    initCrop();
+                }
+            }
+        }
+
+
+        resizeResultImage(750);
 
 
         // let enh = new cv.Mat();
@@ -33,7 +67,7 @@ let rgbArray
         // cv.threshold(gray, tresh, 300, 400, cv.THRESH_BINARY);
         cv.imshow('warpedPerspective', finalDest);
         console.log(theWidth, theHeight, birthNumBorders.length)
-        textRecognition(theWidth, theHeight, finalDest)
+        // textRecognition(theWidth, theHeight, finalDest)
 
         blur.delete()
         morph.delete()
@@ -60,10 +94,8 @@ let rgbArray
 
         let canvas = document.getElementById('warpedPerspective');
         let imageFoo = document.createElement('img');
-        let ctx = canvas.getContext("2d")
-        const imageData = ctx.getImageData(0, 0, finalDest.cols, finalDest.rows);
-
-        rgbArray = removeFourthValues(imageData.data);
+        // let ctx = canvas.getContext("2d")
+        // const imageData = ctx.getImageData(0, 0, finalDest.cols, finalDest.rows);
 
         imageFoo.src = canvas.toDataURL("image/jpg");
         imageFoo.id = "warpedPerspectiveImg"
@@ -73,13 +105,12 @@ let rgbArray
         let caption = document.getElementsByClassName("caption")[1]
         caption.parentNode.insertBefore(imageFoo, caption)
 
-        imageUrl = document.getElementById("warpedPerspectiveImg").getAttribute("src")
         imageUrl = finalDest
 
         borderBtn.onclick = function () {
             Jcrop.load('warpedPerspectiveImg').then(img => {
-                let jcp = Jcrop.attach(img, {multi: true});
-                const rect = Jcrop.Rect.sizeOf(jcp.el);
+                jcpWhole.destroy()
+                jcp = Jcrop.attach(img, {multi: true});
 
                 jcp.listen("crop.change", (w, e) => {
                     console.log(w.pos)
@@ -87,7 +118,15 @@ let rgbArray
                 })
             });
         }
-    };
+
+        borderCancelBtn.onclick = function () {
+            if (!!jcp) {
+                jcp.destroy()
+                initCrop();
+            }
+        }
+        initCrop();
+    }
 
     function blurImage(src) {
         let blur = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
@@ -194,6 +233,14 @@ let rgbArray
         return {"biggest": biggest, "area": max_area}
     }
 
+    function resizeResultImage(width) {
+
+        let aspectRatio = finalDest.rows / finalDest.cols;
+        let height = Math.round(width * aspectRatio);
+        let dsize = new cv.Size(width, height);
+        cv.resize(finalDest, finalDest, dsize, 0, 0, cv.INTER_AREA);
+    }
+
     function textRecognition(theWidth, theHeight, finalDest) {
         let birthNumImage = document.getElementById("birthNumber")
 
@@ -282,4 +329,113 @@ let rgbArray
 
 
 })();
+
+function initCrop() {
+    Jcrop.load('warpedPerspectiveImg').then(img => {
+        jcpWhole = Jcrop.attach(img, {multi: false});
+        const rect = Jcrop.Rect.sizeOf(jcpWhole.el);
+        jcpWhole.newWidget(rect, {});
+
+        jcpWhole.listen("crop.change", (w, e) => {
+            console.log(w.pos)
+            let rect = new cv.Rect(
+                w.pos.x,
+                w.pos.y,
+                w.pos.w,
+                w.pos.h);
+            imageUrl = finalDest.roi(rect);
+            cv.imshow("cropped", imageUrl)
+            imageUrl = cv.imread("cropped")
+        })
+    });
+}
+
+function rotate2(angle) {
+    let image = document.getElementById("warpedPerspectiveImg");
+    image.style.transform = "rotate(" + angle + "deg)";
+}
+
+function rotate(angle) {
+    const canvas = document.getElementById('warpedPerspectiveImg');
+    const image = cv.imread(canvas);
+    let output = new cv.Mat();
+    const size = new cv.Size();
+
+    size.width = image.cols;
+    size.height = image.rows;
+
+    const scalar = new cv.Scalar(0, 0, 0, 0);
+
+    let center;
+    let padding;
+    let height = size.height;
+    let width = size.width;
+
+    if (height > width) {
+        center = new cv.Point(height / 2, height / 2);
+        padding = (height - width) / 2;
+        // Pad out the left and right before rotating to make the width the same as the height
+        cv.copyMakeBorder(image, output, 0, 0, padding, padding, cv.BORDER_CONSTANT, scalar);
+        size.width = height;
+    } else {
+        center = new cv.Point(width / 2, width / 2);
+        padding = (width - height) / 2;
+        // Pad out the top and bottom before rotating to make the height the same as the width
+        cv.copyMakeBorder(image, output, padding, padding, 0, 0, cv.BORDER_CONSTANT, scalar);
+        size.height = width;
+    }
+
+    const rotationMatrix = cv.getRotationMatrix2D(center, angle, 1);
+
+    cv.warpAffine(
+        output,
+        output,
+        rotationMatrix,
+        size,
+        // cv.INTER_LINEAR,
+        // cv.BORDER_CONSTANT,
+        // new cv.Scalar()
+    );
+
+    let rectangle;
+
+    if (height > width) {
+        rectangle = new cv.Rect(0, padding, height, width);
+    } else {
+        /* These arguments might not be in the right order as my solution only needed height
+         * > width so I've just assumed this is the order they'll need to be for width >=
+         * height.
+         */
+        rectangle = new cv.Rect(padding, 0, height, width);
+    }
+
+    output = output.roi(rectangle);
+
+    cv.imshow("warpedPerspective", output);
+    finalDest = output.clone()
+    imageUrl = output.clone()
+    output.delete()
+
+    let canvasWarped = document.getElementById('warpedPerspective');
+    let imageFoo = document.createElement('img');
+
+
+    imageFoo.src = canvasWarped.toDataURL("image/jpg");
+    imageFoo.id = "warpedPerspectiveImg"
+
+    console.log(canvasWarped.toDataURL("image/jpg"))
+
+    let caption = document.getElementsByClassName("caption")[1]
+    document.getElementById("warpedPerspectiveImg").outerHTML = "";
+    caption.parentNode.insertBefore(imageFoo, caption)
+
+    if (!!jcp) {
+        jcp.destroy()
+    }
+
+    if (!!jcpWhole) {
+        jcpWhole.destroy()
+        initCrop();
+    }
+}
 

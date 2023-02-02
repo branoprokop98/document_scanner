@@ -22,8 +22,15 @@
         <canvas id="warpedPerspective" width="50%" style="display: none"></canvas>
         <div class="caption">warpedPerspective</div>
         <button id="myBtn">Open Modal</button>
-        <button id="borderBtn">Define border</button>
-        <button id="submit">Submit</button>
+        <button id="borderBtn">Define borders</button>
+        <button id="borderCancelBtn">Cancel borders</button>
+        <button id="rotateClockBtn" onclick="rotate(-90);">Rotate clockwise</button>
+        <button id="rotateCounterBtn" onclick="rotate(90);">Rotate counterclockwise</button>
+        <br>
+
+        <label for="fsize">Size</label>
+        <input type="number" id="fsize" name="fsize" >
+        <button id="sizeBtn">Set size</button>
         <div id="error-submit" style="display: none">
             Meno pacienta alebo rodne číslo je prázdne
         </div>
@@ -32,10 +39,12 @@
         <input type="text" id="fname" name="fname" ><br>
         <label for="fname">Rodné číslo</label><br>
         <input type="text" id="fbirthnumber" name="fname"><br>
+        <button id="submit">Submit</button>
 
     </div>
 </div>
 <canvas id="birthNumber" style="display: none"></canvas>
+<canvas id="cropped" style="display: none"></canvas>
 
 <!-- The Modal -->
 <div id="myModal" class="modal">

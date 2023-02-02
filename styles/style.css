@@ -2,6 +2,7 @@
     background-color:#2E4272;
     display:flex;
     padding: 10px;
+    width: fit-content;
 }
 .fixed {
     background-color:#4F628E;
@@ -17,7 +18,6 @@
     text-align: left;
     margin-top: auto;
     margin-bottom: auto;
-    width: 50%;
     padding: 10px;
 }
 
