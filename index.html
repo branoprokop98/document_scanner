@@ -1,7 +1,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Hello OpenCV.js</title>
+    <title>Digitalizácia papierových lekárskych žiadaniek a správ do formátu DICOM</title>
     <script
         src="https://scaleflex.cloudimg.io/v7/plugins/filerobot-image-editor/latest/filerobot-image-editor.min.js"></script>
     <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
@@ -12,34 +12,38 @@
     <link rel="stylesheet" href="styles/modal.css">
     <link rel="stylesheet" href="styles/style.css">
 </head>
-<body>
+<body class="body-style">
+<h1>Digitalizácia papierových lekárskych žiadaniek a správ do formátu DICOM</h1>
 <div class="container">
-    <div class="fixed">
+    <div id="fixed">
         <img id="imageSrc" alt="No Image" width="100%"/>
-        <div class="caption">imageSrc <input type="file" id="fileInput" name="file"/></div>
+        <div class="caption"><input type="file" id="fileInput" name="file" multiple="multiple"/></div>
     </div>
-    <div class="flex-item">
+    <div id="flex-item">
         <canvas id="warpedPerspective" width="50%" style="display: none"></canvas>
-        <div class="caption">warpedPerspective</div>
-        <button id="myBtn">Open Modal</button>
-        <button id="borderBtn">Define borders</button>
-        <button id="borderCancelBtn">Cancel borders</button>
-        <button id="rotateClockBtn" onclick="rotate(-90);">Rotate clockwise</button>
-        <button id="rotateCounterBtn" onclick="rotate(90);">Rotate counterclockwise</button>
-        <br>
+        <div class="caption"></div>
 
-        <label for="fsize">Size</label>
-        <input type="number" id="fsize" name="fsize" >
-        <button id="sizeBtn">Set size</button>
-        <div id="error-submit" style="display: none">
-            Meno pacienta alebo rodne číslo je prázdne
+        <div id="controls">
+            <button id="myBtn">Open Modal</button>
+            <button id="borderBtn">Define borders</button>
+            <button id="borderCancelBtn">Cancel borders</button>
+            <button id="rotateClockBtn" onclick="rotate(-90);">Rotate clockwise</button>
+            <button id="rotateCounterBtn" onclick="rotate(90);">Rotate counterclockwise</button>
+            <br>
+
+            <label for="fsize">Size</label>
+            <input type="number" id="fsize" name="fsize" >
+            <button id="sizeBtn">Set size</button>
+            <div id="error-submit" style="display: none">
+                Meno pacienta alebo rodne číslo je prázdne
+            </div>
+            <br>
+            <label for="fname">Meno a Priezvisko pacienta:</label><br>
+            <input type="text" id="fname" name="fname" ><br>
+            <label for="fname">Rodné číslo</label><br>
+            <input type="text" id="fbirthnumber" name="fname"><br>
+            <button id="submit">Submit</button>
         </div>
-        <br>
-        <label for="fname">Meno a Priezvisko pacienta:</label><br>
-        <input type="text" id="fname" name="fname" ><br>
-        <label for="fname">Rodné číslo</label><br>
-        <input type="text" id="fbirthnumber" name="fname"><br>
-        <button id="submit">Submit</button>
 
     </div>
 </div>

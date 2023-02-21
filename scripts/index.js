@@ -15,6 +15,7 @@ app.use(cors({
 // Setting path for public directory
 const static_path = path.join(__dirname, "../");
 app.use(express.static(static_path));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.text({limit: '200mb'}));
 app.use(express.json({limit: '200mb'}));
 
@@ -31,10 +32,12 @@ app.post("/request", (req, res) => {
     const cols = req.body.cols;
     const birthNumber = req.body.birth;
     const name = req.body.name;
-    saveImageToDicom(data, rows, cols, birthNumber, name)
-    res.json([{
-        name_recieved: "OK"
-    }])
+    const filename = req.body.filename;
+    saveImageToDicom(data, rows, cols, birthNumber, name, filename)
+    res.download("../files/" + filename + ".dcm", filename + ".dcm")
+    // res.json([{
+    //     name_recieved: "OK"
+    // }])
 })
 
 // Server Setup
@@ -154,7 +157,7 @@ function extractBirthDate(birthNumber) {
 }
 
 
-function saveImageToDicom(data, rows, cols, birthNumber, patientName) {
+function saveImageToDicom(data, rows, cols, birthNumber, patientName, filename) {
     let pixelArray = new Uint8ClampedArray(Object.values(data));
     let array = removeFourthValues(pixelArray);
 
@@ -190,7 +193,7 @@ function saveImageToDicom(data, rows, cols, birthNumber, patientName) {
     const dicomDict = dcmjs.data.datasetToDict(dataset);
     const buffer = Buffer.from(dicomDict.write());
 
-    fs.writeFile('dicom.dcm', buffer, err => {
+    fs.writeFile("../files/" +filename + '.dcm', buffer, err => {
         if (err) {
             console.error(err);
         }

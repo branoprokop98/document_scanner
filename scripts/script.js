@@ -10,21 +10,36 @@ let imageUrl
 let jcp
 let jcpWhole
 let finalDest
+let current
+let files
 
 (async () => {
     inputElement.addEventListener('change', (e) => {
-        $("#warpedPerspectiveImg").attr("src","");
-        $("#imageSrc").attr("src","");
-        imgElement.src = URL.createObjectURL(e.target.files[0]);
+        $("#warpedPerspectiveImg").remove();
+        $("#imageSrc").attr("src", "");
+        current = 0;
+        files = e.target.files
+        if (!!files[current]) {
+            imgElement.src = URL.createObjectURL(files[current]);
+            $("#flex-item").css("display", "block")
+        } else if (!!jcpWhole) {
+            jcpWhole.destroy()
+            $("#flex-item").css("display", "none")
+        }
     }, false);
 
     imgElement.onload = function () {
         let src = cv.imread(imgElement);
         let cornerImg = src.clone()
 
-        if(!!imageUrl) {
+        if (!!imageUrl) {
             imageUrl.delete()
-            $("#warpedPerspectiveImg").attr("src","");
+            $("#warpedPerspectiveImg").remove();
+            $("#warpedPerspective").attr("src", "");
+        }
+
+        if (!!jcpWhole) {
+            jcpWhole.destroy()
         }
 
         let blur = blurImage(src);
