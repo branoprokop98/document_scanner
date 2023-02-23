@@ -2,10 +2,10 @@ let imgElement = document.getElementById('imageSrc');
 let inputElement = document.getElementById('fileInput');
 let borderBtn = document.getElementById("borderBtn");
 let borderCancelBtn = document.getElementById("borderCancelBtn");
-let rotateBtn = document.getElementById("rotateBtn");
 let birthNumber = document.getElementById("fbirthnumber")
 let patientName = document.getElementById("fname")
 let sizeBtn = document.getElementById("sizeBtn")
+let nextBtn = document.getElementById("next-pic-btn")
 let imageUrl
 let jcp
 let jcpWhole
@@ -19,13 +19,7 @@ let files
         $("#imageSrc").attr("src", "");
         current = 0;
         files = e.target.files
-        if (!!files[current]) {
-            imgElement.src = URL.createObjectURL(files[current]);
-            $("#flex-item").css("display", "block")
-        } else if (!!jcpWhole) {
-            jcpWhole.destroy()
-            $("#flex-item").css("display", "none")
-        }
+        updateView()
     }, false);
 
     imgElement.onload = function () {
@@ -34,8 +28,11 @@ let files
 
         if (!!imageUrl) {
             imageUrl.delete()
+            imageUrl = null
             $("#warpedPerspectiveImg").remove();
             $("#warpedPerspective").attr("src", "");
+            $("#controls").css("display","none");
+            $("#fail-detection").css("display","none");
         }
 
         if (!!jcpWhole) {
@@ -47,100 +44,100 @@ let files
         let contours = findContours(morph, src);
         let biggestContour = findBiggestContour(contours)
         let {corner1, corner2, corner3, corner4} = drawCorners(biggestContour, cornerImg);
-        let {tl, tr, bl, br, theWidth, theHeight} = getFinalDimenstions(corner1, corner2, corner3, corner4);
-        finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
+        if (!!corner1 && !!corner2 && !!corner3 && !!corner4) {
+            let {tl, tr, bl, br, theWidth, theHeight} = getFinalDimenstions(corner1, corner2, corner3, corner4);
+            finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
 
-        sizeBtn.onclick = function () {
-            let size = $("#fsize").val()
-            if (!!size) {
-                resizeResultImage(parseInt(size))
-                cv.imshow("warpedPerspective", finalDest)
-                let canvas = document.getElementById('warpedPerspective');
-                let img = document.getElementById('warpedPerspectiveImg');
-                img.src = canvas.toDataURL("image/jpg")
+            $("#controls").css("display","block");
+            $("#fail-detection").css("display","none");
+            sizeBtn.onclick = function () {
+                let size = $("#fsize").val()
+                if (!!size) {
+                    resizeResultImage(parseInt(size))
+                    cv.imshow("warpedPerspective", finalDest)
+                    let canvas = document.getElementById('warpedPerspective');
+                    let img = document.getElementById('warpedPerspectiveImg');
+                    img.src = canvas.toDataURL("image/jpg")
+                    if (!!jcp) {
+                        jcp.destroy()
+                    }
+
+                    if (!!jcpWhole) {
+                        jcpWhole.destroy()
+                        initCrop();
+                    }
+                }
+            }
+
+
+            resizeResultImage(750);
+
+
+            cv.imshow('warpedPerspective', finalDest);
+            console.log(theWidth, theHeight, birthNumBorders.length)
+            // textRecognition(theWidth, theHeight, finalDest)
+
+            blur.delete()
+            morph.delete()
+            contours.delete()
+
+            try {
+                let parent = document.getElementsByClassName("flex-item")[0]
+                let warpedImg = document.getElementById("warpedPerspectiveImg")
+                let jcrop = document.getElementsByClassName("jcrop-stage")[0]
+                parent.removeChild(warpedImg)
+                parent.removeChild(jcrop)
+            } catch (e) {
+
+            }
+
+            let canvas = document.getElementById('warpedPerspective');
+            let imageFoo = document.createElement('img');
+
+            imageFoo.src = canvas.toDataURL("image/jpg");
+            imageFoo.id = "warpedPerspectiveImg"
+
+            console.log(canvas.toDataURL("image/jpg"))
+
+            let caption = document.getElementsByClassName("caption")[1]
+            caption.parentNode.insertBefore(imageFoo, caption)
+
+            imageUrl = finalDest
+
+            borderBtn.onclick = function () {
+                Jcrop.load('warpedPerspectiveImg').then(img => {
+                    jcpWhole.destroy()
+                    jcp = Jcrop.attach(img, {multi: true});
+
+                    jcp.listen("crop.change", (w, e) => {
+                        console.log(w.pos)
+                        textRecognitionFromBorder(w.pos.x, w.pos.y, w.pos.w, w.pos.h, finalDest)
+                    })
+                });
+            }
+
+            borderCancelBtn.onclick = function () {
                 if (!!jcp) {
                     jcp.destroy()
-                }
-
-                if (!!jcpWhole) {
-                    jcpWhole.destroy()
                     initCrop();
                 }
             }
-        }
+            initCrop();
+        } else {
+            $("#controls").css("display","none");
+            $("#fail-detection").css("display","block");
 
+            current++
+            if (!!files[current]) {
+                $("#next-pic-btn").css("display","revert");
+            } else {
+                $("#next-pic-btn").css("display","none");
+            }
 
-        resizeResultImage(750);
-
-
-        // let enh = new cv.Mat();
-        // let gray = new cv.Mat();
-        // let tresh = new cv.Mat();
-        // let dsize = new cv.Size(200, 200);
-        // cv.resize(dst, enh, dsize, 0, 0, cv.INTER_CUBIC);
-        // cv.cvtColor(enh, gray, cv.COLOR_RGBA2GRAY, 0);
-        // cv.threshold(gray, tresh, 300, 400, cv.THRESH_BINARY);
-        cv.imshow('warpedPerspective', finalDest);
-        console.log(theWidth, theHeight, birthNumBorders.length)
-        // textRecognition(theWidth, theHeight, finalDest)
-
-        blur.delete()
-        morph.delete()
-        contours.delete()
-        // finalDest.delete()
-        // let dst = new cv.Mat();
-        // let x1 = (62.75 * theWidth) / 100
-        // let y1 = (30.24 * theHeight) / 100
-        // let x2 = (20.02 * theWidth) / 100
-        // let y2 = (4.72 * theHeight) / 100
-        // let rect = new cv.Rect(x1, y1, x2, y2);
-        // dst = finalDest.roi(rect);
-        // cv.imshow('birthNumber', dst)
-
-        try {
-            let parent = document.getElementsByClassName("flex-item")[0]
-            let warpedImg = document.getElementById("warpedPerspectiveImg")
-            let jcrop = document.getElementsByClassName("jcrop-stage")[0]
-            parent.removeChild(warpedImg)
-            parent.removeChild(jcrop)
-        } catch (e) {
-
-        }
-
-        let canvas = document.getElementById('warpedPerspective');
-        let imageFoo = document.createElement('img');
-        // let ctx = canvas.getContext("2d")
-        // const imageData = ctx.getImageData(0, 0, finalDest.cols, finalDest.rows);
-
-        imageFoo.src = canvas.toDataURL("image/jpg");
-        imageFoo.id = "warpedPerspectiveImg"
-
-        console.log(canvas.toDataURL("image/jpg"))
-
-        let caption = document.getElementsByClassName("caption")[1]
-        caption.parentNode.insertBefore(imageFoo, caption)
-
-        imageUrl = finalDest
-
-        borderBtn.onclick = function () {
-            Jcrop.load('warpedPerspectiveImg').then(img => {
-                jcpWhole.destroy()
-                jcp = Jcrop.attach(img, {multi: true});
-
-                jcp.listen("crop.change", (w, e) => {
-                    console.log(w.pos)
-                    textRecognitionFromBorder(w.pos.x, w.pos.y, w.pos.w, w.pos.h, finalDest)
-                })
-            });
-        }
-
-        borderCancelBtn.onclick = function () {
-            if (!!jcp) {
-                jcp.destroy()
-                initCrop();
+            nextBtn.onclick = function () {
+                updateView()
             }
         }
-        initCrop();
     }
 
     function blurImage(src) {
@@ -183,15 +180,24 @@ let files
 
     function drawCorners(biggestContour2, cornerImg) {
         let contoursColor = new cv.Scalar(0, 255, 255);
-        let corner1 = new cv.Point(biggestContour2.biggest.data32S[0], biggestContour2.biggest.data32S[1]);
-        let corner2 = new cv.Point(biggestContour2.biggest.data32S[2], biggestContour2.biggest.data32S[3]);
-        let corner3 = new cv.Point(biggestContour2.biggest.data32S[4], biggestContour2.biggest.data32S[5]);
-        let corner4 = new cv.Point(biggestContour2.biggest.data32S[6], biggestContour2.biggest.data32S[7]);
+        if (!!biggestContour2.biggest.data32S) {
+            let corner1 = new cv.Point(biggestContour2.biggest.data32S[0], biggestContour2.biggest.data32S[1]);
+            let corner2 = new cv.Point(biggestContour2.biggest.data32S[2], biggestContour2.biggest.data32S[3]);
+            let corner3 = new cv.Point(biggestContour2.biggest.data32S[4], biggestContour2.biggest.data32S[5]);
+            let corner4 = new cv.Point(biggestContour2.biggest.data32S[6], biggestContour2.biggest.data32S[7]);
 
-        cv.circle(cornerImg, corner1, 3, contoursColor, -1)
-        cv.circle(cornerImg, corner2, 3, contoursColor, -1)
-        cv.circle(cornerImg, corner3, 3, contoursColor, -1)
-        cv.circle(cornerImg, corner4, 3, contoursColor, -1)
+            cv.circle(cornerImg, corner1, 3, contoursColor, -1)
+            cv.circle(cornerImg, corner2, 3, contoursColor, -1)
+            cv.circle(cornerImg, corner3, 3, contoursColor, -1)
+            cv.circle(cornerImg, corner4, 3, contoursColor, -1)
+
+            return {corner1, corner2, corner3, corner4};
+        }
+
+        let corner1 = null
+        let corner2 = null
+        let corner3 = null
+        let corner4 = null
 
         return {corner1, corner2, corner3, corner4};
     }
@@ -451,6 +457,16 @@ function rotate(angle) {
     if (!!jcpWhole) {
         jcpWhole.destroy()
         initCrop();
+    }
+}
+
+function updateView() {
+    if (!!files[current]) {
+        imgElement.src = URL.createObjectURL(files[current]);
+        $("#flex-item").css("display", "block")
+    } else if (!!jcpWhole) {
+        jcpWhole.destroy()
+        $("#flex-item").css("display", "none")
     }
 }
 

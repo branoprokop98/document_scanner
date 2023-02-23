@@ -16,6 +16,7 @@ $(document).ready(function () {
                     $("#warpedPerspectiveImg").remove();
                     $("#imageSrc").attr("src","");
                     $("#flex-item").css("display","none");
+                    $("#controls").css("display","none");
                     $("#fname").val("");
                     $("#fbirthnumber").val("")
                     // $("#fileInput").val("")
@@ -26,21 +27,10 @@ $(document).ready(function () {
                     if(!!jcpWhole) {
                         jcpWhole.destroy()
                     }
+                    current++
                     updateView()
                 }
             })
         }
     })
-
-    function updateView() {
-        current++
-        if (!!files[current]) {
-            imgElement.src = URL.createObjectURL(files[current]);
-            $("#flex-item").css("display", "block")
-        } else if (!!jcpWhole) {
-            jcpWhole.destroy()
-            $("#flex-item").css("display", "none")
-        }
-    }
-
 })

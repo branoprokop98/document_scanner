@@ -29,6 +29,13 @@
 #controls {
     margin: 20px;
     text-align: center;
+    display: none;
+}
+
+#fail-detection {
+    margin: 20px;
+    text-align: center;
+    display: none;
 }
 
 .body-style {
