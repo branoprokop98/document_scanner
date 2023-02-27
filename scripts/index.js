@@ -35,7 +35,10 @@ app.post("/request", (req, res) => {
     const birthNumber = req.body.birth;
     const name = req.body.name;
     const filename = req.body.filename;
-    saveImageToDicom(data, rows, cols, birthNumber, name, filename)
+
+    let buffer = saveImageToDicomBuffer(data, rows, cols, birthNumber, name)
+    saveToFileAndSend(filename, buffer);
+
     res.download("../files/" + filename + ".dcm", filename + ".dcm")
     // res.json([{
     //     name_recieved: "OK"
@@ -158,7 +161,18 @@ function extractBirthDate(birthNumber) {
 }
 
 
-function saveImageToDicom(data, rows, cols, birthNumber, patientName, filename) {
+function saveToFileAndSend(filename, buffer) {
+    fs.writeFile("../files/" + filename + '.dcm', buffer, err => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        // file written successfully
+        sendFileToPacs(filename);
+    });
+}
+
+function saveImageToDicomBuffer(data, rows, cols, birthNumber, patientName) {
     let pixelArray = new Uint8ClampedArray(Object.values(data));
     let array = removeFourthValues(pixelArray);
 
@@ -193,21 +207,11 @@ function saveImageToDicom(data, rows, cols, birthNumber, patientName, filename) 
 
     dataset.PixelData = pixelData;
 
-
     const dicomDict = dcmjs.data.datasetToDict(dataset);
-    const buffer = Buffer.from(dicomDict.write());
-
-    fs.writeFile("../files/" + filename + '.dcm', buffer, err => {
-        if (err) {
-            console.error(err);
-            return;
-        }
-        // file written successfully
-        sendFileToTomoCon(filename);
-    });
+    return Buffer.from(dicomDict.write());
 }
 
-function sendFileToTomoCon(filename) {
+function sendFileToPacs(filename) {
     const client = new Client();
     const request = new CStoreRequest("../files/" + filename + '.dcm');
     client.addRequest(request);
