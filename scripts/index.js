@@ -3,7 +3,9 @@ const path = require("path");
 const cors = require('cors');
 const fs = require('fs');
 const dcmjs = require('dcmjs')
-const canvasNode = require('canvas');
+const dcmjsDimse = require('dcmjs-dimse');
+const {Client} = dcmjsDimse;
+const {CStoreRequest} = dcmjsDimse.requests;
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -15,7 +17,7 @@ app.use(cors({
 // Setting path for public directory
 const static_path = path.join(__dirname, "../");
 app.use(express.static(static_path));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(express.text({limit: '200mb'}));
 app.use(express.json({limit: '200mb'}));
 
@@ -61,14 +63,13 @@ const jsonDataset = `{
     "SeriesInstanceUID": "1.2.276.0.7230010.3.1.4.3911126723.5164.1670863918.783",
     "PlanarConfiguration": 0,
     "SOPClassUID": "1.2.840.10008.5.1.4.1.1.7",
-    "SOPInstanceUID": "1.2.276.0.7230010.3.1.4.3911126723.5164.1670863918.781",
+    "SOPInstanceUID": "1.2.276.0.7230010.3.1.4.3911126723.5164.",
     "DerivationDescription" : "Lossless JPEG compression, selection value 1, point transform 0, compression ratio 1.4799",
     "PatientName": "Brano Prokop",
     "PatientID": "980827/6368",
     "PatientBirthDate": "19980827",
-    "SeriesInstanceUID": "1.2.276.0.7230010.3.1.4.3911126723.5164.1670863918.783",
-    "StudyInstanceUID": "1.2.276.0.7230010.3.1.4.3911126723.5164.1670863918.782",
-    "SeriesInstanceUID": "1.2.276.0.7230010.3.1.4.3911126723.5164.1670863918.783",
+    "SeriesInstanceUID": "1.2.276.0.7230010.3.1.4.3911126723.5164.",
+    "StudyInstanceUID": "1.2.276.0.7230010.3.1.4.3911126723.5164.",
     "StudyID": "1",
     "SeriesNumber": "1",
     "InstanceNumber": "1",
@@ -186,6 +187,9 @@ function saveImageToDicom(data, rows, cols, birthNumber, patientName, filename) 
     dataset.StudyTime = time
     dataset.StudyDate = date
     dataset.PatientBirthDate = birthDate
+    dataset.StudyInstanceUID = dataset.StudyInstanceUID + Date.now() + "." + Math.floor(Math.random() * 999);
+    dataset.SOPInstanceUID = dataset.SOPInstanceUID + Date.now() + "." + Math.floor(Math.random() * 999);
+    dataset.SeriesInstanceUID = dataset.SeriesInstanceUID + Date.now() + "." + Math.floor(Math.random() * 999);
 
     dataset.PixelData = pixelData;
 
@@ -193,12 +197,24 @@ function saveImageToDicom(data, rows, cols, birthNumber, patientName, filename) 
     const dicomDict = dcmjs.data.datasetToDict(dataset);
     const buffer = Buffer.from(dicomDict.write());
 
-    fs.writeFile("../files/" +filename + '.dcm', buffer, err => {
+    fs.writeFile("../files/" + filename + '.dcm', buffer, err => {
         if (err) {
             console.error(err);
+            return;
         }
         // file written successfully
+        sendFileToTomoCon(filename);
     });
+}
+
+function sendFileToTomoCon(filename) {
+    const client = new Client();
+    const request = new CStoreRequest("../files/" + filename + '.dcm');
+    client.addRequest(request);
+    client.on('networkError', (e) => {
+        console.log('Network error: ', e);
+    });
+    client.send('127.0.0.1', 104, 'SCU', 'ANY-SCP');
 }
 
 
