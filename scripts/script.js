@@ -8,8 +8,8 @@ let sizeBtn = document.getElementById("sizeBtn")
 let nextBtn = document.getElementById("next-pic-btn")
 let rotateClockBtn = document.getElementById("rotateClockBtn")
 let rotateCounterClockBtn = document.getElementById("rotateCounterBtn")
+let submitBtn = document.getElementById("submit")
 
-let imageUrl
 let jcp
 let jcpWhole
 let current
@@ -25,17 +25,14 @@ let files
     }, false);
 
     imgElement.onload = function () {
+        let imageUrl
         let src = cv.imread(imgElement);
         let cornerImg = src.clone()
 
-        if (!!imageUrl) {
-            imageUrl.delete()
-            imageUrl = null
-            $("#warpedPerspectiveImg").remove();
-            $("#warpedPerspective").attr("src", "");
-            $("#controls").css("display","none");
-            $("#fail-detection").css("display","none");
-        }
+        $("#warpedPerspectiveImg").remove();
+        $("#warpedPerspective").attr("src", "");
+        $("#controls").css("display","none");
+        $("#fail-detection").css("display","none");
 
         if (!!jcpWhole) {
             jcpWhole.destroy()
@@ -66,7 +63,9 @@ let files
 
                     if (!!jcpWhole) {
                         jcpWhole.destroy()
-                        initCrop(finalDest);
+                        initCrop(finalDest, imageUrl, function (value) {
+                            imageUrl = value
+                        });
                     }
                 }
             }
@@ -121,21 +120,20 @@ let files
             borderCancelBtn.onclick = function () {
                 if (!!jcp) {
                     jcp.destroy()
-                    initCrop(finalDest);
+                    initCrop(finalDest, imageUrl, function (value) {
+                        imageUrl = value
+                    });
                 }
             }
-            initCrop(finalDest);
+            initCrop(finalDest, imageUrl, function (value) {
+                imageUrl = value
+            });
             rotateClockBtn.onclick = function () {
-                rotate(-90, finalDest)
+                imageUrl = rotate(-90, finalDest, imageUrl)
             }
             rotateCounterClockBtn.onclick = function () {
-                rotate(90, finalDest)
+                imageUrl = rotate(90, finalDest, imageUrl)
             }
-
-            $("#submit").click({
-                image: imageUrl,
-                fileName: files[current].name},
-                test);
 
         } else {
             $("#controls").css("display","none");
@@ -151,6 +149,10 @@ let files
             nextBtn.onclick = function () {
                 updateView()
             }
+        }
+
+        submitBtn.onclick = function () {
+            test(imageUrl, files[current].name)
         }
     }
 
@@ -365,7 +367,7 @@ let files
 
 })();
 
-function initCrop(finalDest) {
+function initCrop(finalDest, imageUrl, callback) {
     Jcrop.load('warpedPerspectiveImg').then(img => {
         jcpWhole = Jcrop.attach(img, {multi: false});
         const rect = Jcrop.Rect.sizeOf(jcpWhole.el);
@@ -381,6 +383,7 @@ function initCrop(finalDest) {
             imageUrl = finalDest.roi(rect);
             cv.imshow("cropped", imageUrl)
             imageUrl = cv.imread("cropped")
+            callback(imageUrl)
         })
     });
 }
@@ -390,7 +393,7 @@ function rotate2(angle) {
     image.style.transform = "rotate(" + angle + "deg)";
 }
 
-function rotate(angle, finalDest) {
+function rotate(angle, finalDest, imageUrl) {
     const canvas = document.getElementById('warpedPerspectiveImg');
     const image = cv.imread(canvas);
     let output = new cv.Mat();
@@ -470,8 +473,14 @@ function rotate(angle, finalDest) {
 
     if (!!jcpWhole) {
         jcpWhole.destroy()
-        initCrop(finalDest);
+
+        // TODO: return imageUrl
+        initCrop(finalDest, imageUrl, function (value) {
+            imageUrl = value
+        });
     }
+
+    return imageUrl
 }
 
 function updateView() {

@@ -1,4 +1,4 @@
-function test(event) {
+function test(image, filename) {
     if (birthNumber.value === "" || patientName.value === "") {
         $("#error-submit").css("display", "block")
     } else {
@@ -8,16 +8,14 @@ function test(event) {
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
-                "image": event.data.image.data,
-                "rows": event.data.image.rows,
-                "cols": event.data.image.cols,
+                "image": image.data,
+                "rows": image.rows,
+                "cols": image.cols,
                 "birth": birthNumber.value,
                 "name": patientName.value,
-                "filename": event.data.fileName}),
+                "filename": filename}),
             success: function (data) {
                 console.log("OK")
-                imageUrl.delete()
-                imageUrl = null
                 $("#warpedPerspectiveImg").remove();
                 $("#imageSrc").attr("src","");
                 $("#flex-item").css("display","none");
