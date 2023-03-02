@@ -6,10 +6,12 @@ let birthNumber = document.getElementById("fbirthnumber")
 let patientName = document.getElementById("fname")
 let sizeBtn = document.getElementById("sizeBtn")
 let nextBtn = document.getElementById("next-pic-btn")
+let rotateClockBtn = document.getElementById("rotateClockBtn")
+let rotateCounterClockBtn = document.getElementById("rotateCounterBtn")
+
 let imageUrl
 let jcp
 let jcpWhole
-let finalDest
 let current
 let files
 
@@ -46,14 +48,14 @@ let files
         let {corner1, corner2, corner3, corner4} = drawCorners(biggestContour, cornerImg);
         if (!!corner1 && !!corner2 && !!corner3 && !!corner4) {
             let {tl, tr, bl, br, theWidth, theHeight} = getFinalDimenstions(corner1, corner2, corner3, corner4);
-            finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
+            let finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
 
             $("#controls").css("display","block");
             $("#fail-detection").css("display","none");
             sizeBtn.onclick = function () {
                 let size = $("#fsize").val()
                 if (!!size) {
-                    resizeResultImage(parseInt(size))
+                    resizeResultImage(parseInt(size), finalDest)
                     cv.imshow("warpedPerspective", finalDest)
                     let canvas = document.getElementById('warpedPerspective');
                     let img = document.getElementById('warpedPerspectiveImg');
@@ -64,13 +66,13 @@ let files
 
                     if (!!jcpWhole) {
                         jcpWhole.destroy()
-                        initCrop();
+                        initCrop(finalDest);
                     }
                 }
             }
 
 
-            resizeResultImage(750);
+            resizeResultImage(750, finalDest);
 
 
             cv.imshow('warpedPerspective', finalDest);
@@ -119,10 +121,22 @@ let files
             borderCancelBtn.onclick = function () {
                 if (!!jcp) {
                     jcp.destroy()
-                    initCrop();
+                    initCrop(finalDest);
                 }
             }
-            initCrop();
+            initCrop(finalDest);
+            rotateClockBtn.onclick = function () {
+                rotate(-90, finalDest)
+            }
+            rotateCounterClockBtn.onclick = function () {
+                rotate(90, finalDest)
+            }
+
+            $("#submit").click({
+                image: imageUrl,
+                fileName: files[current].name},
+                test);
+
         } else {
             $("#controls").css("display","none");
             $("#fail-detection").css("display","block");
@@ -254,7 +268,7 @@ let files
         return {"biggest": biggest, "area": max_area}
     }
 
-    function resizeResultImage(width) {
+    function resizeResultImage(width, finalDest) {
 
         let aspectRatio = finalDest.rows / finalDest.cols;
         let height = Math.round(width * aspectRatio);
@@ -351,7 +365,7 @@ let files
 
 })();
 
-function initCrop() {
+function initCrop(finalDest) {
     Jcrop.load('warpedPerspectiveImg').then(img => {
         jcpWhole = Jcrop.attach(img, {multi: false});
         const rect = Jcrop.Rect.sizeOf(jcpWhole.el);
@@ -376,7 +390,7 @@ function rotate2(angle) {
     image.style.transform = "rotate(" + angle + "deg)";
 }
 
-function rotate(angle) {
+function rotate(angle, finalDest) {
     const canvas = document.getElementById('warpedPerspectiveImg');
     const image = cv.imread(canvas);
     let output = new cv.Mat();
@@ -456,7 +470,7 @@ function rotate(angle) {
 
     if (!!jcpWhole) {
         jcpWhole.destroy()
-        initCrop();
+        initCrop(finalDest);
     }
 }
 

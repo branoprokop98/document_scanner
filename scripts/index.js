@@ -168,7 +168,7 @@ function saveToFileAndSend(filename, buffer) {
             return;
         }
         // file written successfully
-        sendFileToPacs(filename);
+        // sendFileToPacs(filename);
     });
 }
 
