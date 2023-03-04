@@ -10,29 +10,32 @@ let rotateClockBtn = document.getElementById("rotateClockBtn")
 let rotateCounterClockBtn = document.getElementById("rotateCounterBtn")
 let submitBtn = document.getElementById("submit")
 
-let jcp
-let jcpWhole
+
 let current
 let files
-
 (async () => {
     inputElement.addEventListener('change', (e) => {
         $("#warpedPerspectiveImg").remove();
         $("#imageSrc").attr("src", "");
         current = 0;
         files = e.target.files
-        updateView()
+        if (!!files[current]) {
+            imgElement.src = URL.createObjectURL(files[current]);
+            $("#flex-item").css("display", "block")
+        }
     }, false);
 
     imgElement.onload = function () {
         let imageUrl
+        let jcpWhole
+        let jcp
         let src = cv.imread(imgElement);
         let cornerImg = src.clone()
 
         $("#warpedPerspectiveImg").remove();
         $("#warpedPerspective").attr("src", "");
-        $("#controls").css("display","none");
-        $("#fail-detection").css("display","none");
+        $("#controls").css("display", "none");
+        $("#fail-detection").css("display", "none");
 
         if (!!jcpWhole) {
             jcpWhole.destroy()
@@ -47,8 +50,8 @@ let files
             let {tl, tr, bl, br, theWidth, theHeight} = getFinalDimenstions(corner1, corner2, corner3, corner4);
             let finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
 
-            $("#controls").css("display","block");
-            $("#fail-detection").css("display","none");
+            $("#controls").css("display", "block");
+            $("#fail-detection").css("display", "none");
             sizeBtn.onclick = function () {
                 let size = $("#fsize").val()
                 if (!!size) {
@@ -63,8 +66,9 @@ let files
 
                     if (!!jcpWhole) {
                         jcpWhole.destroy()
-                        initCrop(finalDest, imageUrl, function (value) {
+                        initCrop(finalDest, imageUrl, function (value, crop) {
                             imageUrl = value
+                            jcpWhole = crop
                         });
                     }
                 }
@@ -98,8 +102,6 @@ let files
             imageFoo.src = canvas.toDataURL("image/jpg");
             imageFoo.id = "warpedPerspectiveImg"
 
-            console.log(canvas.toDataURL("image/jpg"))
-
             let caption = document.getElementsByClassName("caption")[1]
             caption.parentNode.insertBefore(imageFoo, caption)
 
@@ -120,39 +122,53 @@ let files
             borderCancelBtn.onclick = function () {
                 if (!!jcp) {
                     jcp.destroy()
-                    initCrop(finalDest, imageUrl, function (value) {
+                    initCrop(finalDest, imageUrl, function (value, crop) {
                         imageUrl = value
+                        jcpWhole = crop
                     });
                 }
             }
-            initCrop(finalDest, imageUrl, function (value) {
+            initCrop(finalDest, imageUrl, function (value, crop) {
                 imageUrl = value
+                jcpWhole = crop
             });
             rotateClockBtn.onclick = function () {
-                imageUrl = rotate(-90, finalDest, imageUrl)
+                imageUrl = rotate(-90, finalDest, imageUrl, jcpWhole, jcp, function (value, crop, regionCrop) {
+                    imageUrl = value
+                    jcpWhole = crop
+                    jcp = regionCrop
+                })
             }
             rotateCounterClockBtn.onclick = function () {
-                imageUrl = rotate(90, finalDest, imageUrl)
+                imageUrl = rotate(90, finalDest, imageUrl, jcpWhole, jcp, function (value, crop, regionCrop) {
+                    imageUrl = value
+                    jcpWhole = crop
+                    jcp = regionCrop
+                })
             }
 
         } else {
-            $("#controls").css("display","none");
-            $("#fail-detection").css("display","block");
+            $("#controls").css("display", "none");
+            $("#fail-detection").css("display", "block");
 
             current++
             if (!!files[current]) {
-                $("#next-pic-btn").css("display","revert");
+                $("#next-pic-btn").css("display", "revert");
             } else {
-                $("#next-pic-btn").css("display","none");
+                $("#next-pic-btn").css("display", "none");
             }
 
             nextBtn.onclick = function () {
-                updateView()
+                updateView(jcpWhole)
             }
         }
 
         submitBtn.onclick = function () {
-            test(imageUrl, files[current].name)
+            test(imageUrl, files[current].name, jcpWhole, jcp)
+            if (!!jcp) {
+                jcp.destroy()
+            }
+            imageUrl.delete()
         }
     }
 
@@ -369,7 +385,7 @@ let files
 
 function initCrop(finalDest, imageUrl, callback) {
     Jcrop.load('warpedPerspectiveImg').then(img => {
-        jcpWhole = Jcrop.attach(img, {multi: false});
+        let jcpWhole = Jcrop.attach(img, {multi: false});
         const rect = Jcrop.Rect.sizeOf(jcpWhole.el);
         jcpWhole.newWidget(rect, {});
 
@@ -383,8 +399,9 @@ function initCrop(finalDest, imageUrl, callback) {
             imageUrl = finalDest.roi(rect);
             cv.imshow("cropped", imageUrl)
             imageUrl = cv.imread("cropped")
-            callback(imageUrl)
+            callback(imageUrl, jcpWhole)
         })
+        callback(imageUrl, jcpWhole)
     });
 }
 
@@ -393,7 +410,7 @@ function rotate2(angle) {
     image.style.transform = "rotate(" + angle + "deg)";
 }
 
-function rotate(angle, finalDest, imageUrl) {
+function rotate(angle, finalDest, imageUrl, jcpWhole, jcp, callback) {
     const canvas = document.getElementById('warpedPerspectiveImg');
     const image = cv.imread(canvas);
     let output = new cv.Mat();
@@ -469,26 +486,29 @@ function rotate(angle, finalDest, imageUrl) {
 
     if (!!jcp) {
         jcp.destroy()
+        callback(imageUrl, jcpWhole, jcp)
     }
 
     if (!!jcpWhole) {
         jcpWhole.destroy()
 
-        // TODO: return imageUrl
-        initCrop(finalDest, imageUrl, function (value) {
+        initCrop(finalDest, imageUrl, function (value, crop) {
             imageUrl = value
+            jcpWhole = crop
+            callback(imageUrl, jcpWhole, jcp)
         });
+
+        callback(imageUrl, jcpWhole, jcp)
     }
 
     return imageUrl
 }
 
-function updateView() {
+function updateView(jcpWhole) {
     if (!!files[current]) {
         imgElement.src = URL.createObjectURL(files[current]);
         $("#flex-item").css("display", "block")
     } else if (!!jcpWhole) {
-        jcpWhole.destroy()
         $("#flex-item").css("display", "none")
     }
 }

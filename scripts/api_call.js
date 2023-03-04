@@ -1,4 +1,4 @@
-function test(image, filename) {
+function test(image, filename, jcpWhole, jcp) {
     if (birthNumber.value === "" || patientName.value === "") {
         $("#error-submit").css("display", "block")
     } else {
@@ -31,7 +31,7 @@ function test(image, filename) {
                     jcpWhole.destroy()
                 }
                 current++
-                updateView()
+                updateView(jcpWhole)
             }
         })
     }
