@@ -165,10 +165,9 @@ function saveToFileAndSend(filename, buffer) {
     fs.writeFile("../files/" + filename + '.dcm', buffer, err => {
         if (err) {
             console.error(err);
-            return;
         }
         // file written successfully
-        // sendFileToPacs(filename);
+        sendFileToPacs(filename);
     });
 }
 
