@@ -47,7 +47,7 @@ let files
         let biggestContour = findBiggestContour(contours)
         let {corner1, corner2, corner3, corner4} = drawCorners(biggestContour, cornerImg);
         if (!!corner1 && !!corner2 && !!corner3 && !!corner4) {
-            let {tl, tr, bl, br, theWidth, theHeight} = getFinalDimenstions(corner1, corner2, corner3, corner4);
+            let {tl, tr, bl, br, theWidth, theHeight} = getFinalDimensions(corner1, corner2, corner3, corner4);
             let finalDest = warpPerspective(theWidth, theHeight, tl, tr, br, bl, src);
 
             $("#controls").css("display", "block");
@@ -164,6 +164,12 @@ let files
         }
 
         submitBtn.onclick = function () {
+            if(!validateBirthNumber(birthNumber.value)) {
+                return
+            }
+
+            isFemale(birthNumber.value)
+
             test(imageUrl, files[current].name, jcpWhole, jcp)
             if (!!jcp) {
                 jcp.destroy()
@@ -234,7 +240,7 @@ let files
         return {corner1, corner2, corner3, corner4};
     }
 
-    function getFinalDimenstions(corner1, corner2, corner3, corner4) {
+    function getFinalDimensions(corner1, corner2, corner3, corner4) {
         let cornerArray = [{corner: corner1}, {corner: corner2}, {corner: corner3}, {corner: corner4}];
         cornerArray.sort((item1, item2) => {
             return (item1.corner.y < item2.corner.y) ? -1 : (item1.corner.y > item2.corner.y) ? 1 : 0;
@@ -284,14 +290,6 @@ let files
             }
         }
         return {"biggest": biggest, "area": max_area}
-    }
-
-    function resizeResultImage(width, finalDest) {
-
-        let aspectRatio = finalDest.rows / finalDest.cols;
-        let height = Math.round(width * aspectRatio);
-        let dsize = new cv.Size(width, height);
-        cv.resize(finalDest, finalDest, dsize, 0, 0, cv.INTER_AREA);
     }
 
     function textRecognition(theWidth, theHeight, finalDest) {
@@ -380,8 +378,39 @@ let files
         return new Uint8ClampedArray(array.filter((value, index) => (index + 1) % 4 !== 0));
     }
 
+    function validateBirthNumber(birthNumberString) {
+        const found = birthNumberString.match(/[0-9]{6}\/[0-9]{3,4}/g)
+        if (typeof found == "undefined" || found == null || found.length == null || found.length === 0) {
+            return false
+        }
+
+        let birthMonth = birthNumberString.substring(2, 4)
+        birthMonth = parseInt(birthMonth)
+
+        if ((birthMonth > 0 && birthMonth <= 12) || (birthMonth > 50 && birthMonth <= 62)) {
+            birthNumberString = birthNumberString.replace("/", "")
+            let birthNumber = parseInt(birthNumberString)
+
+            return birthNumber % 11 === 0;
+        }
+        return false
+    }
+
+    function isFemale(birthNumberString) {
+        let birthMonth = birthNumberString.substring(2, 4)
+        birthMonth = parseInt(birthMonth)
+        return birthMonth > 50;
+    }
+
 
 })();
+
+function resizeResultImage(width, finalDest) {
+    let aspectRatio = finalDest.rows / finalDest.cols;
+    let height = Math.round(width * aspectRatio);
+    let dsize = new cv.Size(width, height);
+    cv.resize(finalDest, finalDest, dsize, 0, 0, cv.INTER_AREA);
+}
 
 function initCrop(finalDest, imageUrl, callback) {
     Jcrop.load('warpedPerspectiveImg').then(img => {
@@ -483,6 +512,7 @@ function rotate(angle, finalDest, imageUrl, jcpWhole, jcp, callback) {
     let caption = document.getElementsByClassName("caption")[1]
     document.getElementById("warpedPerspectiveImg").outerHTML = "";
     caption.parentNode.insertBefore(imageFoo, caption)
+
 
     if (!!jcp) {
         jcp.destroy()
