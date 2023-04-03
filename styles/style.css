@@ -18,7 +18,7 @@
 
 #flex-item {
     background-color: #7887AB;
-    flex-grow: 1;
+    /*flex-grow: 1;*/
     /*text-align: center;*/
     margin-top: auto;
     margin-bottom: auto;
@@ -46,6 +46,16 @@ h1 {
     color: white;
     text-align: center;
     font-family: Calibri;
+}
+
+button {
+    border-radius: 12px;
+    padding: 15px 32px;
+    border: none;
+}
+
+button:hover {
+    background: #c9c9c9;
 }
 
 /*header h2 {*/

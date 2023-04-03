@@ -1,19 +1,18 @@
-let imgElement = document.getElementById('imageSrc');
-let inputElement = document.getElementById('fileInput');
-let borderBtn = document.getElementById("borderBtn");
-let borderCancelBtn = document.getElementById("borderCancelBtn");
-let birthNumber = document.getElementById("fbirthnumber")
-let patientName = document.getElementById("fname")
-let sizeBtn = document.getElementById("sizeBtn")
-let nextBtn = document.getElementById("next-pic-btn")
-let rotateClockBtn = document.getElementById("rotateClockBtn")
-let rotateCounterClockBtn = document.getElementById("rotateCounterBtn")
-let submitBtn = document.getElementById("submit")
-
-
 let current
-let files
 (async () => {
+    let files
+    let imgElement = document.getElementById('imageSrc');
+    let inputElement = document.getElementById('fileInput');
+    let borderBtn = document.getElementById("borderBtn");
+    let borderCancelBtn = document.getElementById("borderCancelBtn");
+    let birthNumber = document.getElementById("fbirthnumber")
+    let patientName = document.getElementById("fname")
+    let sizeBtn = document.getElementById("sizeBtn")
+    let nextBtn = document.getElementById("next-pic-btn")
+    let rotateClockBtn = document.getElementById("rotateClockBtn")
+    let rotateCounterClockBtn = document.getElementById("rotateCounterBtn")
+    let submitBtn = document.getElementById("submit")
+
     inputElement.addEventListener('change', (e) => {
         $("#warpedPerspectiveImg").remove();
         $("#imageSrc").attr("src", "");
@@ -25,6 +24,7 @@ let files
         }
     }, false);
 
+
     imgElement.onload = function () {
         let imageUrl
         let jcpWhole
@@ -32,10 +32,26 @@ let files
         let src = cv.imread(imgElement);
         let cornerImg = src.clone()
 
-        $("#warpedPerspectiveImg").remove();
-        $("#warpedPerspective").attr("src", "");
-        $("#controls").css("display", "none");
-        $("#fail-detection").css("display", "none");
+        function resolveVariables() {
+            if (!!jcpWhole) {
+                jcpWhole.destroy()
+            }
+            if (!!jcp) {
+                jcp.destroy()
+            }
+            $("#warpedPerspectiveImg").remove();
+            $("#warpedPerspective").attr("src", "");
+            $("#controls").css("display", "none");
+            $("#fail-detection").css("display", "none");
+            updateView(jcpWhole, files)
+        }
+
+        function handleClick(callback) {
+            callback()
+        }
+        inputElement.addEventListener('change', (e) => {
+            handleClick(resolveVariables)
+        })
 
         if (!!jcpWhole) {
             jcpWhole.destroy()
@@ -52,27 +68,27 @@ let files
 
             $("#controls").css("display", "block");
             $("#fail-detection").css("display", "none");
-            sizeBtn.onclick = function () {
-                let size = $("#fsize").val()
-                if (!!size) {
-                    resizeResultImage(parseInt(size), finalDest)
-                    cv.imshow("warpedPerspective", finalDest)
-                    let canvas = document.getElementById('warpedPerspective');
-                    let img = document.getElementById('warpedPerspectiveImg');
-                    img.src = canvas.toDataURL("image/jpg")
-                    if (!!jcp) {
-                        jcp.destroy()
-                    }
-
-                    if (!!jcpWhole) {
-                        jcpWhole.destroy()
-                        initCrop(finalDest, imageUrl, function (value, crop) {
-                            imageUrl = value
-                            jcpWhole = crop
-                        });
-                    }
-                }
-            }
+            // sizeBtn.onclick = function () {
+            //     let size = $("#fsize").val()
+            //     if (!!size) {
+            //         resizeResultImage(parseInt(size), finalDest)
+            //         cv.imshow("warpedPerspective", finalDest)
+            //         let canvas = document.getElementById('warpedPerspective');
+            //         let img = document.getElementById('warpedPerspectiveImg');
+            //         img.src = canvas.toDataURL("image/jpg")
+            //         if (!!jcp) {
+            //             jcp.destroy()
+            //         }
+            //
+            //         if (!!jcpWhole) {
+            //             jcpWhole.destroy()
+            //             initCrop(finalDest, imageUrl, function (value, crop) {
+            //                 imageUrl = value
+            //                 jcpWhole = crop
+            //             });
+            //         }
+            //     }
+            // }
 
 
             resizeResultImage(750, finalDest);
@@ -159,7 +175,7 @@ let files
             }
 
             nextBtn.onclick = function () {
-                updateView(jcpWhole)
+                updateView(jcpWhole, files)
             }
         }
 
@@ -170,7 +186,7 @@ let files
 
             isFemale(birthNumber.value)
 
-            test(imageUrl, files[current].name, jcpWhole, jcp)
+            sendOnServer(imageUrl, files[current].name, jcpWhole, jcp, files)
             if (!!jcp) {
                 jcp.destroy()
             }
@@ -534,8 +550,9 @@ function rotate(angle, finalDest, imageUrl, jcpWhole, jcp, callback) {
     return imageUrl
 }
 
-function updateView(jcpWhole) {
+function updateView(jcpWhole, files) {
     if (!!files[current]) {
+        let imgElement = document.getElementById('imageSrc');
         imgElement.src = URL.createObjectURL(files[current]);
         $("#flex-item").css("display", "block")
     } else if (!!jcpWhole) {

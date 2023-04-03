@@ -1,4 +1,6 @@
-function test(image, filename, jcpWhole, jcp) {
+function sendOnServer(image, filename, jcpWhole, jcp, files) {
+    let birthNumber = document.getElementById("fbirthnumber")
+    let patientName = document.getElementById("fname")
     if (birthNumber.value === "" || patientName.value === "") {
         $("#error-submit").css("display", "block")
     } else {
@@ -31,7 +33,7 @@ function test(image, filename, jcpWhole, jcp) {
                     jcpWhole.destroy()
                 }
                 current++
-                updateView(jcpWhole)
+                updateView(jcpWhole, files)
             }
         })
     }
