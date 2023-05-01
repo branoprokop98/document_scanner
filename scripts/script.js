@@ -68,27 +68,6 @@ let current
 
             $("#controls").css("display", "block");
             $("#fail-detection").css("display", "none");
-            // sizeBtn.onclick = function () {
-            //     let size = $("#fsize").val()
-            //     if (!!size) {
-            //         resizeResultImage(parseInt(size), finalDest)
-            //         cv.imshow("warpedPerspective", finalDest)
-            //         let canvas = document.getElementById('warpedPerspective');
-            //         let img = document.getElementById('warpedPerspectiveImg');
-            //         img.src = canvas.toDataURL("image/jpg")
-            //         if (!!jcp) {
-            //             jcp.destroy()
-            //         }
-            //
-            //         if (!!jcpWhole) {
-            //             jcpWhole.destroy()
-            //             initCrop(finalDest, imageUrl, function (value, crop) {
-            //                 imageUrl = value
-            //                 jcpWhole = crop
-            //             });
-            //         }
-            //     }
-            // }
 
 
             resizeResultImage(750, finalDest);

@@ -28,7 +28,7 @@ app.get('/', function (req, res) {
 });
 
 // Handling request
-app.post("/request", (req, res) => {
+app.post("/request", async (req, res) => {
     const data = req.body.image
     const rows = req.body.rows;
     const cols = req.body.cols;
@@ -37,12 +37,14 @@ app.post("/request", (req, res) => {
     const filename = req.body.filename;
 
     let buffer = saveImageToDicomBuffer(data, rows, cols, birthNumber, name)
-    saveToFileAndSend(filename, buffer);
 
-    res.download("../files/" + filename + ".dcm", filename + ".dcm")
-    // res.json([{
-    //     name_recieved: "OK"
-    // }])
+    saveToFileAndSend(filename, buffer, function (error) {
+        if(error) {
+            res.status(500).send(error)
+        } else {
+            res.status(200).send()
+        }
+    });
 })
 
 // Server Setup
@@ -161,13 +163,15 @@ function extractBirthDate(birthNumber) {
 }
 
 
-function saveToFileAndSend(filename, buffer) {
+function saveToFileAndSend(filename, buffer, callback) {
     fs.writeFile("../files/" + filename + '.dcm', buffer, err => {
         if (err) {
             console.error(err);
         }
         // file written successfully
-        sendFileToPacs(filename);
+        sendFileToPacs(filename, function (error) {
+            callback(error)
+        });
     });
 }
 
@@ -210,12 +214,17 @@ function saveImageToDicomBuffer(data, rows, cols, birthNumber, patientName) {
     return Buffer.from(dicomDict.write());
 }
 
-function sendFileToPacs(filename) {
+function sendFileToPacs(filename, callback) {
     const client = new Client();
     const request = new CStoreRequest("../files/" + filename + '.dcm');
     client.addRequest(request);
     client.on('networkError', (e) => {
         console.log('Network error: ', e);
+        callback(e)
+    });
+    request.on('response', (response) => {
+        console.log("Response")
+        callback(null)
     });
     client.send('127.0.0.1', 104, 'SCU', 'ANY-SCP');
 }

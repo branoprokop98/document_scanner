@@ -47,11 +47,17 @@ h1 {
     text-align: center;
     font-family: Calibri;
 }
+h3 {
+    color: black;
+    text-align: center;
+    font-family: Calibri;
+}
 
 button {
     border-radius: 12px;
     padding: 15px 32px;
     border: none;
+    margin-top: 10px
 }
 
 button:hover {

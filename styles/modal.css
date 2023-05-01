@@ -18,8 +18,9 @@
     margin: auto;
     padding: 20px;
     border: 1px solid #888;
-    width: 80%;
-    height: 600px;
+    width: 300px;
+    text-align: center;
+    height: 100px;
 }
 
 /* The Close Button */
