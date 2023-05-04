@@ -1,9 +1,6 @@
 let current
 (async () => {
     let files
-    let birthNumber = document.getElementById("fbirthnumber")
-    let patientName = document.getElementById("fname")
-    let sizeBtn = document.getElementById("sizeBtn")
     let nextBtn = document.getElementById("next-pic-btn")
     let rotateClockBtn = document.getElementById("rotateClockBtn")
     let rotateCounterClockBtn = document.getElementById("rotateCounterBtn")
@@ -174,11 +171,12 @@ let current
         }
 
         submitBtn.onclick = function () {
-            if(!validateBirthNumber(birthNumber.value)) {
+            let birthNumber = $('#fbirthnumber').val()
+            if(!validateBirthNumber(birthNumber)) {
                 return
             }
 
-            isFemale(birthNumber.value)
+            isFemale(birthNumber)
 
             sendOnServer(imageUrl, files[current].name, jcpWhole, jcp, files)
             if (!!jcp) {
@@ -371,9 +369,9 @@ let current
                 if (typeof found != "undefined" && found != null && found.length != null
                     && found.length > 0) {
                     console.log(found[0])
-                    birthNumber.value = found[0]
+                    $('#fbirthnumber').val(found[0])
                 } else {
-                    patientName.value = text
+                    $('#fname').val(text)
                 }
             })
             await worker.terminate();
