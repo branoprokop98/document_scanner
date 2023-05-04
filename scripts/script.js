@@ -1,9 +1,6 @@
 let current
 (async () => {
     let files
-    let inputElement = document.getElementById('fileInput');
-    let borderBtn = document.getElementById("borderBtn");
-    let borderCancelBtn = document.getElementById("borderCancelBtn");
     let birthNumber = document.getElementById("fbirthnumber")
     let patientName = document.getElementById("fname")
     let sizeBtn = document.getElementById("sizeBtn")
@@ -12,7 +9,7 @@ let current
     let rotateCounterClockBtn = document.getElementById("rotateCounterBtn")
     let submitBtn = document.getElementById("submit")
 
-    inputElement.addEventListener('change', (e) => {
+    $("#fileInput").on('change', (e) => {
         let imageSrc = $("#imageSrc");
         $("#warpedPerspectiveImg").remove();
         imageSrc.attr("src", "");
@@ -22,7 +19,19 @@ let current
             imageSrc.attr("src", URL.createObjectURL(files[current]));
             $("#flex-item").css("display", "block")
         }
-    }, false);
+    })
+    //
+    // inputElement.addEventListener('change', (e) => {
+    //     let imageSrc = $("#imageSrc");
+    //     $("#warpedPerspectiveImg").remove();
+    //     imageSrc.attr("src", "");
+    //     current = 0;
+    //     files = e.target.files
+    //     if (!!files[current]) {
+    //         imageSrc.attr("src", URL.createObjectURL(files[current]));
+    //         $("#flex-item").css("display", "block")
+    //     }
+    // }, false);
 
     $("#imageSrc").on('load', () => {
         let imageUrl
@@ -48,7 +57,8 @@ let current
         function handleClick(callback) {
             callback()
         }
-        inputElement.addEventListener('change', (e) => {
+
+        $("#fileInput").on('change', (e) => {
             handleClick(resolveVariables)
         })
 
@@ -101,9 +111,9 @@ let current
 
             imageUrl = finalDest
 
-            borderBtn.onclick = function () {
-                borderBtn.disabled = true
-                borderCancelBtn.disabled = false
+            $("#borderBtn").on('click', () => {
+                $("#borderBtn").prop('disabled', true)
+                $("#borderCancelBtn").prop('disabled', false)
                 Jcrop.load('warpedPerspectiveImg').then(img => {
                     jcpWhole.destroy()
                     jcp = Jcrop.attach(img, {multi: true});
@@ -113,11 +123,12 @@ let current
                         textRecognitionFromBorder(w.pos.x, w.pos.y, w.pos.w, w.pos.h, finalDest)
                     })
                 });
-            }
 
-            borderCancelBtn.onclick = function () {
-                borderBtn.disabled = false
-                borderCancelBtn.disabled = true
+            })
+
+            $('#borderCancelBtn').on('click', () => {
+                $("#borderBtn").prop('disabled', false)
+                $('#borderCancelBtn').prop('disabled', true)
                 if (!!jcp) {
                     jcp.destroy()
                     initCrop(finalDest, imageUrl, function (value, crop) {
@@ -125,7 +136,8 @@ let current
                         jcpWhole = crop
                     });
                 }
-            }
+            })
+
             initCrop(finalDest, imageUrl, function (value, crop) {
                 imageUrl = value
                 jcpWhole = crop
