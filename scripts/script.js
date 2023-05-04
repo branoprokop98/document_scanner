@@ -1,10 +1,6 @@
 let current
 (async () => {
     let files
-    let nextBtn = document.getElementById("next-pic-btn")
-    let rotateClockBtn = document.getElementById("rotateClockBtn")
-    let rotateCounterClockBtn = document.getElementById("rotateCounterBtn")
-    let submitBtn = document.getElementById("submit")
 
     $("#fileInput").on('change', (e) => {
         let imageSrc = $("#imageSrc");
@@ -17,18 +13,6 @@ let current
             $("#flex-item").css("display", "block")
         }
     })
-    //
-    // inputElement.addEventListener('change', (e) => {
-    //     let imageSrc = $("#imageSrc");
-    //     $("#warpedPerspectiveImg").remove();
-    //     imageSrc.attr("src", "");
-    //     current = 0;
-    //     files = e.target.files
-    //     if (!!files[current]) {
-    //         imageSrc.attr("src", URL.createObjectURL(files[current]));
-    //         $("#flex-item").css("display", "block")
-    //     }
-    // }, false);
 
     $("#imageSrc").on('load', () => {
         let imageUrl
@@ -139,20 +123,22 @@ let current
                 imageUrl = value
                 jcpWhole = crop
             });
-            rotateClockBtn.onclick = function () {
+
+            $("#rotateClockBtn").on('click', () => {
                 imageUrl = rotate(-90, finalDest, imageUrl, jcpWhole, jcp, function (value, crop, regionCrop) {
                     imageUrl = value
                     jcpWhole = crop
                     jcp = regionCrop
                 })
-            }
-            rotateCounterClockBtn.onclick = function () {
+            })
+
+            $('#rotateCounterBtn').on('click', () => {
                 imageUrl = rotate(90, finalDest, imageUrl, jcpWhole, jcp, function (value, crop, regionCrop) {
                     imageUrl = value
                     jcpWhole = crop
                     jcp = regionCrop
                 })
-            }
+            })
 
         } else {
             $("#controls").css("display", "none");
@@ -165,12 +151,12 @@ let current
                 $("#next-pic-btn").css("display", "none");
             }
 
-            nextBtn.onclick = function () {
+            $("#next-pic-btn").on('click', () => {
                 updateView(jcpWhole, files)
-            }
+            })
         }
 
-        submitBtn.onclick = function () {
+        $('#submit').on('click', () => {
             let birthNumber = $('#fbirthnumber').val()
             if(!validateBirthNumber(birthNumber)) {
                 return
@@ -183,7 +169,7 @@ let current
                 jcp.destroy()
             }
             imageUrl.delete()
-        }
+        })
     })
 
     function blurImage(src) {
