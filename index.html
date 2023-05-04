@@ -2,8 +2,6 @@
 <head>
     <meta charset="utf-8">
     <title>Digitalizácia papierových lekárskych žiadaniek a správ do formátu DICOM</title>
-    <script
-        src="https://scaleflex.cloudimg.io/v7/plugins/filerobot-image-editor/latest/filerobot-image-editor.min.js"></script>
     <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
 
     <link rel="stylesheet" href="styles/jcrop.css">
@@ -27,7 +25,7 @@
 
         <div id="controls">
             <button id="borderBtn">Definovaie oblasti</button>
-            <button id="borderCancelBtn">Zrušenie oblasti</button>
+            <button id="borderCancelBtn" disabled>Zrušenie oblasti</button>
             <button id="rotateClockBtn">Otočiť o 90°</button>
             <button id="rotateCounterBtn">Otočit o -90°</button>
             <br>
@@ -67,14 +65,14 @@
 
 </div>
 
-<script src="libs/opencv.min.js"></script>
-<script src="scripts/borders.js"></script>
-<script src="scripts/script.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity=
             "sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
         crossorigin="anonymous">
 </script>
+<script src="libs/opencv.min.js"></script>
+<script src="scripts/borders.js"></script>
+<script src="scripts/script.js"></script>
 <script src="scripts/api_call.js"></script>
 <!--<script src="scripts/border_selector.js"></script>-->
 </body>

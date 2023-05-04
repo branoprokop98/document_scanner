@@ -1,7 +1,6 @@
 let current
 (async () => {
     let files
-    let imgElement = document.getElementById('imageSrc');
     let inputElement = document.getElementById('fileInput');
     let borderBtn = document.getElementById("borderBtn");
     let borderCancelBtn = document.getElementById("borderCancelBtn");
@@ -14,22 +13,22 @@ let current
     let submitBtn = document.getElementById("submit")
 
     inputElement.addEventListener('change', (e) => {
+        let imageSrc = $("#imageSrc");
         $("#warpedPerspectiveImg").remove();
-        $("#imageSrc").attr("src", "");
+        imageSrc.attr("src", "");
         current = 0;
         files = e.target.files
         if (!!files[current]) {
-            imgElement.src = URL.createObjectURL(files[current]);
+            imageSrc.attr("src", URL.createObjectURL(files[current]));
             $("#flex-item").css("display", "block")
         }
     }, false);
 
-
-    imgElement.onload = function () {
+    $("#imageSrc").on('load', () => {
         let imageUrl
         let jcpWhole
         let jcp
-        let src = cv.imread(imgElement);
+        let src = cv.imread($("#imageSrc").attr('id'));
         let cornerImg = src.clone()
 
         function resolveVariables() {
@@ -103,6 +102,8 @@ let current
             imageUrl = finalDest
 
             borderBtn.onclick = function () {
+                borderBtn.disabled = true
+                borderCancelBtn.disabled = false
                 Jcrop.load('warpedPerspectiveImg').then(img => {
                     jcpWhole.destroy()
                     jcp = Jcrop.attach(img, {multi: true});
@@ -115,6 +116,8 @@ let current
             }
 
             borderCancelBtn.onclick = function () {
+                borderBtn.disabled = false
+                borderCancelBtn.disabled = true
                 if (!!jcp) {
                     jcp.destroy()
                     initCrop(finalDest, imageUrl, function (value, crop) {
@@ -171,7 +174,7 @@ let current
             }
             imageUrl.delete()
         }
-    }
+    })
 
     function blurImage(src) {
         let blur = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);

@@ -64,6 +64,10 @@ button:hover {
     background: #c9c9c9;
 }
 
+button:disabled {
+    background: #707070;
+}
+
 /*header h2 {*/
 /*    display: block;*/
 /*    color: #f2f2f2;*/
