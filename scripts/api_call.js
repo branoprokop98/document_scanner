@@ -5,7 +5,6 @@ function cleanPage(jcp, jcpWhole, files) {
     $("#controls").css("display", "none");
     $("#fname").val("");
     $("#fbirthnumber").val("")
-    // $("#fileInput").val("")
     if (!!jcp) {
         jcp.destroy()
     }
@@ -17,8 +16,9 @@ function cleanPage(jcp, jcpWhole, files) {
     updateView(jcpWhole, files)
 }
 
-function openErrorWindow() {
+function openDialogWindow(text) {
     $("#myModal").css("display", "block");
+    $('#dialogText').text(text);
     $("#closeBtn").on("click", function () {
         $("#myModal").css("display", "none");
     })
@@ -45,11 +45,12 @@ function sendOnServer(image, filename, jcpWhole, jcp, files) {
             success: function (data) {
                 console.log("OK")
                 cleanPage(jcp, jcpWhole, files);
+                openDialogWindow("Dokument bol uložený")
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 console.log("Error")
                 cleanPage(jcp, jcpWhole, files);
-                openErrorWindow()
+                openDialogWindow("Chyba spojenia s PACS serverom")
             }
         })
     }
