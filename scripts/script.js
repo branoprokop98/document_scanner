@@ -92,7 +92,7 @@ let current
 
             imageUrl = finalDest
 
-            $("#borderBtn").on('click', () => {
+            $("#borderBtn").unbind("click").click(() => {
                 $("#borderBtn").prop('disabled', true)
                 $("#borderCancelBtn").prop('disabled', false)
                 Jcrop.load('warpedPerspectiveImg').then(img => {
@@ -107,11 +107,12 @@ let current
 
             })
 
-            $('#borderCancelBtn').on('click', () => {
+            $("#borderCancelBtn").unbind("click").click(() => {
                 $("#borderBtn").prop('disabled', false)
                 $('#borderCancelBtn').prop('disabled', true)
                 if (!!jcp) {
                     jcp.destroy()
+                    jcpWhole.destroy()
                     initCrop(finalDest, imageUrl, function (value, crop) {
                         imageUrl = value
                         jcpWhole = crop
@@ -124,20 +125,26 @@ let current
                 jcpWhole = crop
             });
 
-            $("#rotateClockBtn").on('click', () => {
+            $("#rotateClockBtn").unbind("click").click(() => {
                 imageUrl = rotate(-90, finalDest, imageUrl, jcpWhole, jcp, function (value, crop, regionCrop) {
                     imageUrl = value
                     jcpWhole = crop
                     jcp = regionCrop
                 })
+
+                $("#borderBtn").prop('disabled', false)
+                $('#borderCancelBtn').prop('disabled', true)
             })
 
-            $('#rotateCounterBtn').on('click', () => {
+            $("#rotateCounterBtn").unbind("click").click(() => {
                 imageUrl = rotate(90, finalDest, imageUrl, jcpWhole, jcp, function (value, crop, regionCrop) {
                     imageUrl = value
                     jcpWhole = crop
                     jcp = regionCrop
                 })
+
+                $("#borderBtn").prop('disabled', false)
+                $('#borderCancelBtn').prop('disabled', true)
             })
 
         } else {
@@ -156,7 +163,7 @@ let current
             })
         }
 
-        $('#submit').on('click', () => {
+        $("#submit").unbind("click").click(() => {
             let birthNumber = $('#fbirthnumber').val()
             if(!validateBirthNumber(birthNumber)) {
                 return
@@ -164,11 +171,17 @@ let current
 
             isFemale(birthNumber)
 
-            sendOnServer(imageUrl, files[current].name, jcpWhole, jcp, files)
             if (!!jcp) {
                 jcp.destroy()
             }
-            imageUrl.delete()
+
+            if (!!jcpWhole) {
+                jcpWhole.destroy()
+            }
+            sendOnServer(imageUrl, files[current].name, jcpWhole, jcp, files)
+            $("#borderBtn").prop('disabled', false)
+            $('#borderCancelBtn').prop('disabled', true)
+            // imageUrl.delete()
         })
     })
 
